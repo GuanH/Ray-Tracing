@@ -69,24 +69,26 @@ void Graphic::randomize_object()
 	srand(clock());
 	for (int i = 2; i < sc->objs.size(); i++)
 	{
-		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) - 5.0f;
-		float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 8)) - 2.5f;
-		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) + 1.0f + fabs(x);
+		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 20)) - 10.0f;
+		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 30)) + 1.0f + fabs(x);
 		float r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 		float g = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 		float b = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
-		sc->objs[i]->SetPosition(vec3{ x,y,z });
-		sc->objs[i]->SetColor(vec3{ r,g,b });
+		sc->objs[i]->pos.x = x;
+		sc->objs[i]->pos.z = z;
+		sc->objs[i]->color.x = r;
+		sc->objs[i]->color.y = g;
+		sc->objs[i]->color.z = b;
 	}
-	for (int i = sc->objs.size(); i < 16; i++)
+	for (int i = sc->objs.size(); i < 10; i++)
 	{
-		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) - 5.0f;
-		float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 8)) - 2.5f;
-		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) + 1.0f + fabs(x);
+		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 20)) - 10.0f;
+		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 30)) + 1.0f + fabs(x);
 		float r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 		float g = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 		float b = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
-		sc->objs.emplace_back(new sphere{ x,y,z,r,g,b,sc });
+		float radius = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX/3.0f));
+		sc->objs.emplace_back(new sphere{ x,-5.0f + radius,z,r,g,b,sc,radius });
 	}
 }
 

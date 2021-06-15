@@ -4,12 +4,9 @@ Scene::Scene(int& resolutionx, int& resolutiony) :resolutionx(resolutionx), reso
 {
 	objs =
 	{
-		new light(-2.0f,  1.0f,  2.0f,  3.0f, this, 0.25f),
-		new plane(0.0f,  -3.0f,  0.0f,  0.2f,  0.2f,  0.2f,  this),
-		new sphere(1.5f,  0.0f,  2.0f, this) ,
-		new sphere(-1.5f,  0.0f,  3.0f,  1.0f,  0.0f,  0.0f, this),
-		new sphere(-0.3f,  0.8f,  4.0f,  0.0f,  0.0f,  1.0f, this),
-		new sphere(1.0f,  -1.0f,  3.5f,  1.0f,  1.0f,  0.0f, this),
+		new light(-2.0f,  2.0f,  3.0f,  20.0f, this, 0.25f),
+		new plane(0.0f,  -5.0f,  0.0f,  0.2f,  0.2f,  0.2f,  this),
+		new sphere(0.0f,  -4.0f,  8.0f, this) ,
 	};
 }
 

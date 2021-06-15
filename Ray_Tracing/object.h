@@ -11,12 +11,11 @@ public:
 	object(vec3 position, Scene* s) :pos(position), scene(s) {}
 	object(vec3 position,vec3 c, Scene* s) :pos(position), color(c), scene(s) {}
 	Scene* scene;
-	void SetPosition(vec3 p) { pos = p; }
-	void SetColor(vec3 p) { color = p; }
-	virtual std::pair<float, vec3> reflect(Ray r) = 0;
-protected:
 	vec3 pos;
 	vec3 color = { 1.0f, 1.0f, 1.0f };
+	virtual std::pair<float, vec3> reflect(Ray r) = 0;
+protected:
+
 	inline float ambient(float s);
 	static float ambient_a;//ambient lowest bound
 	static float ambient_b;//ambient highest bound

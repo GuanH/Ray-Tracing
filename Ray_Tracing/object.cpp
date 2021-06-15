@@ -51,7 +51,6 @@ std::pair<float, vec3> sphere::reflect(Ray ray)
 
 std::pair<float, vec3> light::reflect(Ray ray)
 {
-
 	float b = 2.0f * (ray.dir.dot(ray.pos - pos));
 	float c = ray.pos.dot(ray.pos) + pos.dot(pos) - 2.0f * ray.pos.dot(pos) - radius2;
 	float d = b * b - 4.0f * c;
@@ -62,7 +61,7 @@ std::pair<float, vec3> light::reflect(Ray ray)
 	float t = (-b - std::sqrt(d)) / 2.0f;
 	float m = ray.dir.dot(pos - ray.pos) - t;
 	float x =  m / radius;
-	return { t, scene->sky + color * luminance * x };
+	return { t, scene->sky + color * luminance * x / t / t };
 }
 
 std::pair<float, vec3> plane::reflect(Ray ray)
