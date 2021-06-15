@@ -45,7 +45,7 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	if (pthis)
-	{		
+	{
 		switch (msg)
 		{
 			case WM_DESTROY: {PostQuitMessage(0); break; }
@@ -78,6 +78,12 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								pthis->render = true;
 								break;
 							}
+							case 1:
+							{
+								pthis->gfx->randomize_object();
+								pthis->render = true;
+								break;
+							}
 						}
 						break;
 					}
@@ -88,7 +94,7 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;
 	}
-	return DefWindowProc(hwnd, msg, wParam, lParam);		
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 const HWND& wnd::gethandle()
 {

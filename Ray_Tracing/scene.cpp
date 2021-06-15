@@ -4,42 +4,40 @@ Scene::Scene(int& resolutionx, int& resolutiony) :resolutionx(resolutionx), reso
 {
 	objs =
 	{
-		new sphere(1.5,  0.0,  2.0, this) ,
-		new sphere(-1.5,  0.0,  3.0,  1.0,  0.0,  0.0, this),
-		new sphere(-0.3,  0.8,  4.0,  0.0,  0.0,  1.0, this),
-		new sphere(1.0,  -1.0,  3.5,  1.0,  1.0,  0.0, this),
-		new light(0.0,  4.0,  0.0,  40, this),
-		new plane(0.0,  -2.0,  0.0, this)
+		new light(-2.0f,  1.0f,  2.0f,  3.0f, this, 0.25f),
+		new plane(0.0f,  -3.0f,  0.0f,  0.2f,  0.2f,  0.2f,  this),
+		new sphere(1.5f,  0.0f,  2.0f, this) ,
+		new sphere(-1.5f,  0.0f,  3.0f,  1.0f,  0.0f,  0.0f, this),
+		new sphere(-0.3f,  0.8f,  4.0f,  0.0f,  0.0f,  1.0f, this),
+		new sphere(1.0f,  -1.0f,  3.5f,  1.0f,  1.0f,  0.0f, this),
 	};
 }
 
-color&& Scene::tracepixel(int x, int y)
+Color&& Scene::tracepixel(int x, int y)
 {
-	/*projection plane*/
-	constexpr double w = 1.0;
-	constexpr double h = 1.0;
-	constexpr double d = 1.0;
-	/*projection plane*/
-	double pointingx = w * ( 2.0 * x / resolutionx -1.0);
-	double pointingy = h * ( 2.0 * y / resolutiony -1.0);
+	float pointingx = w * ( 2.0f * x / resolutionx -1.0f);
+	float pointingy = h * ( 1.0f - 2.0f * y / resolutiony );
 	vec3 dir{ pointingx, pointingy, d };
-	ray ray(vec3{ 0, 0, 0 }, dir.normalize());
+	Ray ray(vec3{ 0, 0, 0 }, dir.normalize());
 
-	while (ray.alive())
+	float nearest = -1;
+	vec3 color = sky;
+	for (auto o : objs)
 	{
-		for (auto o : objs)
+		std::pair<float, vec3> light = o->reflect(ray);
+		if (light.first > 0)
 		{
-			if (o->hit(ray))
+			if (light.first < nearest || nearest < 0)
 			{
-				return translate_color((o->reflect(ray)).saturate(0.0, 1.0));
+				nearest = light.first;
+				color = light.second.saturate(0.0f, 1.0f);
 			}
 		}
-		ray.forward();
 	}
-	return color{ 234, 124, 72 };//sky blue
+	return translate_color(color);
 }
 
-color&& Scene::translate_color(vec3 c)
+Color&& Scene::translate_color(vec3 c)
 {
-	return color{ static_cast<BYTE>(c.z * 255.0) ,static_cast<BYTE>(c.y * 255.0) ,static_cast<BYTE>(c.x * 255.0) };
+	return Color{ static_cast<BYTE>(c.z * 255.0f) ,static_cast<BYTE>(c.y * 255.0f) ,static_cast<BYTE>(c.x * 255.0f) };
 }

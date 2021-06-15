@@ -1,6 +1,6 @@
 #include "graphic.h"
 
-Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x - 30), wndheight(y - 30)
+Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x), wndheight(y - 30)
 {
 	int pad = (4 - ((resolutionx * 3) % 4)) % 4;
 	int width = resolutionx * 3 + pad;
@@ -8,7 +8,8 @@ Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x - 30), wndheig
 	hdc = GetDC(hwnd);
 	htext_res_x = CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER | ES_NUMBER, 0, 7, 80, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	htext_res_y = CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER | ES_NUMBER, 80, 7, 80, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	hbutton_render = CreateWindow("BUTTON", "Render", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 160, 0, 80, 30, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	hbutton_render = CreateWindow("BUTTON", "Render", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 160, 0, 80, 30, hwnd, (HMENU)0, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	hbutton_render = CreateWindow("BUTTON", "Random", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 240, 0, 80, 30, hwnd, (HMENU)1, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	Edit_SetCueBannerText(htext_res_x, L"Res_X");
 	Edit_SetCueBannerText(htext_res_y, L"Res_Y");
 	BitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -23,9 +24,9 @@ Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x - 30), wndheig
 	BitmapInfo.bmiHeader.biClrUsed = 0;
 	BitmapInfo.bmiHeader.biClrImportant = 0;
 
-
 	memset(result.data(), 0, width * resolutiony);
 	sc = new Scene{resolutionx, resolutiony};
+	sc->w = static_cast<float>(wndwidth) / static_cast<float>(wndheight);
 }
 
 void Graphic::render()
@@ -38,7 +39,7 @@ void Graphic::render()
 	{
 		for (int j = 0; j < resolutionx; j++)
 		{
-			color r = sc->tracepixel(j, i);
+			Color r = sc->tracepixel(j, resolutiony - i);
 			int index = (width * i + j * 3);
 			result[index] = r.b;
 			result[index + 1] = r.g;
@@ -46,7 +47,7 @@ void Graphic::render()
 		}
 	}
 	std::stringstream ss;
-	ss << (double)(clock() - timer) / CLOCKS_PER_SEC << '\n';
+	ss << (float)(clock() - timer) / CLOCKS_PER_SEC << '\n';
 	OutputDebugString(ss.str().c_str());
 	/*Do render stuff*/
 
@@ -55,18 +56,45 @@ void Graphic::render()
 	SetDIBits(hdc, bitmap, 0, resolutiony, result.data(), &BitmapInfo, DIB_RGB_COLORS);
 	HDC memDC = CreateCompatibleDC(hdc);
 	SelectObject(memDC, bitmap);
-	int size = wndwidth > wndheight ? wndheight : wndwidth;
-	StretchBlt(hdc, 0, 30, size, size, memDC, 0, 0, resolutionx, resolutiony, SRCCOPY);
+	StretchBlt(hdc, 0, 30, wndwidth, wndheight, memDC, 0, 0, resolutionx, resolutiony, SRCCOPY);
 	DeleteObject(memDC);
 	DeleteObject(bitmap);
 
 	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);//redraw the textbox and the button
 }
 
+void Graphic::randomize_object()
+{
+	sc->objs.reserve(8);
+	srand(clock());
+	for (int i = 2; i < sc->objs.size(); i++)
+	{
+		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) - 5.0f;
+		float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 8)) - 2.5f;
+		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) + 1.0f + fabs(x);
+		float r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		float g = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		float b = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		sc->objs[i]->SetPosition(vec3{ x,y,z });
+		sc->objs[i]->SetColor(vec3{ r,g,b });
+	}
+	for (int i = sc->objs.size(); i < 16; i++)
+	{
+		float x = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) - 5.0f;
+		float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 8)) - 2.5f;
+		float z = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10)) + 1.0f + fabs(x);
+		float r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		float g = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		float b = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
+		sc->objs.emplace_back(new sphere{ x,y,z,r,g,b,sc });
+	}
+}
+
 void Graphic::upadatewndsize(int x, int y)
 {
-	wndwidth = x - 30;
+	wndwidth = x;
 	wndheight = y - 30;
+	sc->w = static_cast<float>(wndwidth) / static_cast<float>(wndheight);
 }
 
 void Graphic::updateresolution(int x, int y)
