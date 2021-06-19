@@ -26,7 +26,7 @@ Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x), wndheight(y 
 
 	memset(result.data(), 0, width * resolutiony);
 	sc = new Scene{resolutionx, resolutiony};
-	sc->w = static_cast<float>(wndwidth) / static_cast<float>(wndheight);
+	sc->w = 2.0f * static_cast<float>(wndwidth) / static_cast<float>(wndheight);
 }
 
 void Graphic::render()
@@ -96,7 +96,7 @@ void Graphic::upadatewndsize(int x, int y)
 {
 	wndwidth = x;
 	wndheight = y - 30;
-	sc->w = static_cast<float>(wndwidth) / static_cast<float>(wndheight);
+	sc->w = 2.0f * static_cast<float>(wndwidth) / static_cast<float>(wndheight);
 }
 
 void Graphic::updateresolution(int x, int y)
