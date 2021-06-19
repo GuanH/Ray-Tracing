@@ -12,10 +12,10 @@ Scene::Scene(int& resolutionx, int& resolutiony) :resolutionx(resolutionx), reso
 
 Color&& Scene::tracepixel(int x, int y)
 {
-	float pointingx = w * ( 2.0f * x / resolutionx -1.0f);
-	float pointingy = h * ( 1.0f - 2.0f * y / resolutiony );
+	float pointingx = w * (static_cast<float>(x) / resolutionx - 0.5f);
+	float pointingy = h * (0.5f - static_cast<float>(y) / resolutiony);
 	vec3 dir{ pointingx, pointingy, d };
-	Ray ray(vec3{ 0, 0, 0 }, dir.normalize());
+	Ray ray{ vec3{ 0, 0, 0 }, dir.normalize() };
 
 	float nearest = -1;
 	vec3 color = sky;
