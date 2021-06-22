@@ -27,7 +27,7 @@ std::pair<float, vec3> sphere::reflect(Ray ray)
 	ray.dir = (normal * (normal.dot(ray.pos - hit_pos)) * 2.0f + hit_pos - ray.pos).normalize();
 	ray.pos = hit_pos;
 	vec3 ambient_light = color * ambient(normal.dot(vec3{ 0, 1, 0 }));
-	if (--ray.hop < 0)
+	if (--ray.hop <= 0)
 	{
 		return { t , ambient_light };
 	}
@@ -67,16 +67,15 @@ std::pair<float, vec3> light::reflect(Ray ray)
 std::pair<float, vec3> plane::reflect(Ray ray)
 {
 	float t = (pos.y - ray.pos.y) / ray.dir.y;
-	if (t < 0 || (ray.hop < 0) || (ray.dir.y == 0))
+	if (t < 0 || (ray.dir.y == 0))
 	{
 		return { -1, vec3{0,0,0} };
 	}
 	vec3 ambient_light = color * ambient(1);
-	if (ray.hop < 0)
+	if (--ray.hop <= 0)
 	{
 		return { t,ambient_light };
 	}
-	ray.hop--;
 	ray.pos = ray.pos + ray.dir * t;
 	ray.dir.y = -ray.dir.y;
 	float nearest = -1;
