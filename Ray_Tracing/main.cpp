@@ -8,6 +8,6 @@ int __stdcall WinMain(
 	_In_ int nShowCmd
 )
 {
-	wnd Wnd("RayTracing", "Ray Tracing", hInstance, nShowCmd, 1200, 900);
+	wnd Wnd("RayTracing", "Ray Tracing", hInstance, nShowCmd, 1000, 1000);
 	Wnd.processmessage();
 }

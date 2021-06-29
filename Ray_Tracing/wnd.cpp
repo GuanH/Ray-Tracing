@@ -14,14 +14,18 @@ wnd::wnd(LPCTSTR name, LPCTSTR title, HINSTANCE& hInstance, int& nCmdshow, unsig
 {
 	this->wndwidth = 0;
 	this->wndheight = 0;
-	WNDCLASSEX wndclass = { 0 };
-	wndclass.cbSize = sizeof(WNDCLASSEX);
-	wndclass.cbWndExtra = sizeof(wnd*);
-	wndclass.hInstance = hInstance;
-	wndclass.lpfnWndProc = this->WndProc;
-	wndclass.lpszClassName = name;
-	wndclass.hbrBackground = nullptr;
-	RegisterClassEx(&wndclass);
+	{
+		WNDCLASSEX wndclass = { 0 };
+		wndclass.cbSize = sizeof(WNDCLASSEX);
+		wndclass.cbWndExtra = sizeof(wnd*);
+		wndclass.hInstance = hInstance;
+		wndclass.lpfnWndProc = this->WndProc;
+		wndclass.lpszClassName = name;
+		wndclass.hbrBackground = nullptr;
+		wndclass.style = CS_DBLCLKS;
+		wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+		RegisterClassEx(&wndclass);
+	}	
 	this->hwnd = CreateWindowEx(0, name, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, hInstance, this);
 	ShowWindow(this->hwnd, nCmdshow);
 	UpdateWindow(this->hwnd);
@@ -49,7 +53,11 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		switch (msg)
 		{
 			case WM_DESTROY: {PostQuitMessage(0); break; }
-			case WM_PAINT: {pthis->setwndsize(); break; }
+			case WM_SIZE:
+			{
+				pthis->setwndsize();
+				break; 
+			}
 			case WM_COMMAND:
 			{
 				switch (HIWORD(wParam))
@@ -58,36 +66,64 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						switch (LOWORD(wParam))
 						{
-							case 0:
+							case BUTTON_ID_RENDER:
 							{
-								char s[10];
-								GetWindowText(pthis->gfx->htext_res_x, s, 10);
-								if(strlen(s)>0)
-								{
-									int x = std::stoi(s);
-									GetWindowText(pthis->gfx->htext_res_y, s, 10);
-									if (strlen(s) > 0)
-									{
-										int y = std::stoi(s);
-										if (x > 0 && y > 0)
-										{
-											pthis->gfx->updateresolution(x, y);
-										}
-									}
-								}
-								pthis->render = true;
+								pthis->gfx->RenderButtonDown();
 								break;
 							}
-							case 1:
+							case BUTTON_ID_RANDOM:
 							{
-								pthis->gfx->randomize_object();
-								pthis->render = true;
+								pthis->gfx->RandomButtonDown();
 								break;
+							}
+							case BUTTON_ID_THREADSET:
+							{
+								pthis->gfx->SetThreadButtonDown();
+								break;
+							}
+							case BUTTON_ID_TRANSPARENTCHECK:
+							{
+								pthis->gfx->SelectTransparentCheck();
+								break;;
+							}
+							case BUTTON_ID_SET:
+							{
+								pthis->gfx->SelectSet();
+								break;
+							}
+							case BUTTON_ID_DELETE:
+							{
+								pthis->gfx->SelectDelete();
+								break;
+							}
+							case BUTTON_ID_LOAD:
+							{
+								pthis->gfx->LoadMeshButtonDown();
+								break;
+							}
+							case BUTTON_ID_COPY:
+							{
+								pthis->gfx->CopyButtonDown();
+								break;
+							}
+							case BUTTON_ID_RANDOMIZECHECK:
+							{
+								pthis->gfx->SelectRandomizeCheck();
 							}
 						}
 						break;
 					}
 				}
+				break;
+			}
+			case WM_LBUTTONDBLCLK :
+			{
+				int x = GET_X_LPARAM(lParam);
+				int y = GET_Y_LPARAM(lParam) - TOP_MARGIN;
+
+				float a = static_cast<float>(x) / pthis->wndwidth - 0.5f;
+				float b = 0.5f - static_cast<float>(y) / (pthis->wndheight-60);
+				pthis->gfx->Select(a, b);
 				break;
 			}
 			default: {return DefWindowProc(hwnd, msg, wParam, lParam); break; }
@@ -102,36 +138,23 @@ const HWND& wnd::gethandle()
 }
 void wnd::processmessage()
 {
-	HDC hdc = GetDC(hwnd);
-	BITMAPINFO bi = { 0 };
-	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bi.bmiHeader.biWidth = 256;
-	bi.bmiHeader.biHeight = 256;
-	bi.bmiHeader.biPlanes = 1;
-	bi.bmiHeader.biBitCount = 24;
-	bi.bmiHeader.biCompression = BI_RGB;
-	bi.bmiHeader.biSizeImage = 0;
-	bi.bmiHeader.biXPelsPerMeter = 0;
-	bi.bmiHeader.biYPelsPerMeter = 0;
-	bi.bmiHeader.biClrUsed = 0;
-	bi.bmiHeader.biClrImportant = 0;
-
 	MSG msg = { 0 };
 	while (GetMessage(&msg, NULL, NULL, NULL))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-		if (render)
+		if (gfx->isRender)
 		{
 			gfx->render();
-			render = false;
+			gfx->isRender = false;
 		}
+		Sleep(1);
 	}
 }
 void wnd::setwndsize()
 {
 	RECT r;
-	if (GetWindowRect(this->hwnd, &r))
+	if (GetClientRect(this->hwnd, &r))
 	{
 		this->wndwidth = r.right - r.left;
 		this->wndheight = r.bottom - r.top;

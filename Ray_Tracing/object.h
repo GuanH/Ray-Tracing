@@ -1,19 +1,39 @@
 #pragma once
-#include"scene.h"
+#define _USE_MATH_DEFINES
+#include"meshloader.h"
 #include"ray.h"
+#include"scene.h"
 #include<cmath>
-#include<tuple>
+#include<vector>
 class Scene;
-struct Color;
+class Mesh;
+struct Material
+{
+	float diffuse = 0;
+	float reflectivity = 1;
+	float refractive = 0;
+	float ambient = 1;
+	float3 color = { 1.0f,1.0f,1.0f };
+	bool transparent = false;
+};
+
 class object
 {
 public:
-	object(vec3 position, Scene* s) :pos(position), scene(s) {}
-	object(vec3 position,vec3 c, Scene* s) :pos(position), color(c), scene(s) {}
+	object(float3 position, Scene* s) :pos(position), scene(s) {}
+	object(float3 position, Material Mat, Scene* s) :pos(position), material(Mat), scene(s) {}
 	Scene* scene;
-	vec3 pos;
-	vec3 color = { 1.0f, 1.0f, 1.0f };
-	virtual std::pair<float, vec3> reflect(Ray r) = 0;
+	float3 pos;
+	Material material;
+	enum class _Type { _sphere, _light, _plane, _mesh };
+	_Type Type = _Type::_sphere;
+	virtual float4 Hit(Ray ray, float n) = 0;
+	virtual float IsHit(Ray ray) = 0;
+	virtual void randomize();
+	virtual object* Clone() const = 0;
+	virtual void Rotatation(float r, float p, float y) {};
+	virtual float3 GetRotation() { return{ 0,0,0 }; };
+	bool selected = false;
 protected:
 
 	inline float ambient(float s);
@@ -25,10 +45,27 @@ protected:
 class sphere:public object
 {
 public:
-	sphere(vec3 position, Scene* s) :object(position, s) {}
-	sphere(float x, float y, float z, Scene* s, float r = 1) :object(vec3{ x, y, z }, s), radius(r), radius2(r * r) {}
-	sphere(float x, float y, float z, float a, float b, float c, Scene* s, float r = 1) :object(vec3{ x, y, z }, vec3{ a, b, c }, s), radius(r), radius2(r * r) {}
-	std::pair<float, vec3> reflect(Ray ray);
+	sphere(float3 Pos, Scene* s, float r = 1) :object(Pos, s), radius(r), radius2(r * r) { Type = _Type::_sphere; }
+	sphere(float3 Pos, Material Mat, Scene* s, float r = 1) :object(Pos, Mat, s), radius(r), radius2(r* r){ Type = _Type::_sphere; }
+	float4 Hit(Ray ray, float n);
+	void randomize();
+	object* Clone() const
+	{
+		return new sphere({ 0,0,7 }, material, scene, radius);
+	};
+
+	inline float IsHit(Ray ray)
+	{
+		float b = 2.0f * (ray.dir.dot(ray.pos - pos));
+		float c = ray.pos.dot(ray.pos) + pos.dot(pos) - 2.0f * ray.pos.dot(pos) - radius2;
+		float d = b * b - 4.0f * c;
+		//the sphere is not Hit
+		if (d < 0.00001)
+		{
+			return -1;
+		}
+		return (-b - sqrtf(d)) / 2.0f;
+	};
 private:
 	float radius = 1;
 	float radius2 = 1;
@@ -37,10 +74,26 @@ private:
 class light:public object
 {
 public:
-	light(vec3 position, Scene* s) :object(position, s) {}
-	light(float x, float y, float z, float l, Scene* s, float r = 1) :object(vec3{ x, y, z }, s), luminance(l), radius(r), radius2(r * r) {}
-	light(float x, float y, float z, float a, float b, float c, float l, Scene* s, float r = 1) :object(vec3{ x, y, z },vec3{ a, b, c },s), luminance(l), radius(r), radius2(r * r){}
-	std::pair<float, vec3> reflect(Ray ray);
+	light(float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_light; material.transparent = true; }
+	light(float3 Pos, float l, Scene* s, float r = 1) :object(Pos, s), luminance(l), radius(r), radius2(r * r) { Type = _Type::_light; material.transparent = true;}
+	light(float3 Pos, Material Mat, float l, Scene* s, float r = 1) :object(Pos,Mat,s), luminance(l), radius(r), radius2(r * r){ Type = _Type::_light; material.transparent = true;}
+	float4 Hit(Ray ray, float n);
+	void randomize();
+	object* Clone() const
+	{
+		return new light({ 0,0,7 }, material, luminance, scene, radius);
+	}
+	inline float IsHit(Ray ray)
+	{
+		float b = 2.0f * (ray.dir.dot(ray.pos - pos));
+		float c = ray.pos.dot(ray.pos) + pos.dot(pos) - 2.0f * ray.pos.dot(pos) - radius2;
+		float d = b * b - 4.0f * c;
+		if (d < 0.00001)
+		{
+			return -1;
+		}
+		return (-b - sqrtf(d)) / 2.0f;
+	};
 private:
 	float radius = 1;
 	float radius2 = 1;
@@ -50,8 +103,62 @@ private:
 class plane :public object
 {
 public:
-	plane(vec3 position, Scene* s) :object(position, s) {};
-	plane(float x, float y, float z, Scene* s) :object(vec3{ x,y,z }, s) {};
-	plane(float x, float y, float z, float a, float b, float c, Scene* s) :object(vec3{ x, y, z }, vec3{ a, b, c }, s) {};
-	std::pair<float, vec3> reflect(Ray ray);
+	plane(float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_plane; };
+	plane(float3 Pos,Material Mat, Scene* s) :object(Pos, Mat, s){ Type = _Type::_plane; };
+	float4 Hit(Ray ray, float n);
+	void randomize();
+	object* Clone() const
+	{
+		return new plane({ 0,0,7 }, material, scene);
+	}
+	inline float IsHit(Ray ray)
+	{
+		return (pos.y - ray.pos.y) / ray.dir.y;
+	}
+};
+
+class mesh :public object
+{
+public:
+	mesh(Mesh* M, float3 Position, Material Mat, Scene* scene);
+	float4 Hit(Ray ray, float n);
+	float3 Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index);
+	void randomize();
+	float IsHit(Ray ray);
+	void Rotatation(float r, float p, float y);
+	float3 GetRotation() { return{ roll,pitch,yaw }; };
+	object* Clone() const
+	{
+		return new mesh(m, { 0,0,7 }, material, scene);
+	}
+	struct Mesh_Hit_Type
+	{
+		float t;
+		int hit_index;
+	};
+
+	inline Mesh_Hit_Type _IsHit(Ray ray);
+
+
+	inline float IsHitTriangle(Ray ray, float3 a, float3 b, float3 c, float n)
+	{
+		float3 A = b - a;
+		float3 B = c - a;
+		float3 uvt = SolveLinear(A, B, -ray.dir, ray.pos - a);
+		float u = uvt.x;
+		float v = uvt.y;
+		float t = uvt.z;
+
+		if (u > -0.00001 && v > -0.00001 && u + v <= 1 && (t < n || n < 0))
+		{
+			return t;
+		}
+		return -1;
+	};
+private:
+	Mesh* m;
+	float roll = 0;
+	float pitch = 0;
+	float yaw = 0;
+	std::vector<float3> vertices;
 };

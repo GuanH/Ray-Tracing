@@ -1,6 +1,6 @@
 #pragma once
 #include<vector>
-#include<Windows.h>
+#include<windowsx.h>
 #include<string>
 #include"graphic.h"
 class wnd
@@ -17,5 +17,4 @@ private:
 	int wndheight;
 	void setwndsize();
 	Graphic* gfx;
-	bool render = true;
 };
