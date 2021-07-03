@@ -2,6 +2,8 @@
 
 Scene::Scene(int& resolutionx, int& resolutiony) :resolutionx(resolutionx), resolutiony(resolutiony)
 {
+	skyimg.Load(skyimg_path);
+
 	Material m_plane;
 	m_plane.color = { 0.498f,0.576f,0.674f };
 	m_plane.diffuse = 0;
@@ -13,29 +15,25 @@ Scene::Scene(int& resolutionx, int& resolutiony) :resolutionx(resolutionx), reso
 	m_sphere.reflectivity = 0.8f;
 	m_sphere.transparent = false;
 	m_sphere.refractive = 1.5f;
-	objs.add(new light(float3{ -1000,  1000,  -1000 }, 100.0f, this, 100));
-	objs.add(new plane(float3{ 0.0f,  -5.0f,  0.0f }, m_plane, this));
-	objs.add(new sphere(float3{ -2, -4,  7.0f }, m_sphere, this, 1.0f));
-
-	objs.SetRandomizeLock(0, true);
-	objs.SetRandomizeLock(1, true);
-	objs.SetRandomizeLock(2, true);
+	objs.add(new light(rt::float3{ -5,  5,  -5 }, 7.0f, this, 1));
+	objs.add(new plane(rt::float3{ 0.0f,  -5.0f,  0.0f }, m_plane, this));
+	objs.add(new sphere(rt::float3{ 0, -4,  15 }, m_sphere, this, 1.0f));
 }
 
-Color Scene::tracepixel(int x, int y)
+rt::Color Scene::tracepixel(int x, int y)
 {
 	float pointingx = w * (static_cast<float>(x) / resolutionx - 0.5f);
 	float pointingy = h * (0.5f - static_cast<float>(y) / resolutiony);
 
-	float3 dir{ pointingx, pointingy, d };
+	rt::float3 dir{ pointingx, pointingy, d };
 	dir = camera.transformation(dir);
 	Ray ray{ camera.position, dir.normalize() };
 	float nearest = -1;
-	float3 color = sky;
+	rt::float3 color = GetSkyColor(ray);
 
 	for (int i = 0; i < objs.size(); i++)
 	{
-		float4 light = objs[i]->Hit(ray, nearest);
+		rt::float4 light = objs[i]->Hit(ray, nearest);
 		if (light.x > 0.00001)
 		{
 			if (objs[i]->selected)
@@ -47,7 +45,7 @@ Color Scene::tracepixel(int x, int y)
 					test_y = static_cast<float>(y);
 					pointingx = w * (test_x / resolutionx - 0.5f);
 					pointingy = h * (0.5f - test_y / resolutiony);
-					dir = camera.transformation(float3{ pointingx, pointingy, d });
+					dir = camera.transformation({ pointingx, pointingy, d });
 					Ray test_ray{ camera.position, dir.normalize() };
 					if (objs[i]->IsHit(test_ray) < 0.00001)
 					{
@@ -59,7 +57,7 @@ Color Scene::tracepixel(int x, int y)
 					test_y = static_cast<float>(y);
 					pointingx = w * (test_x / resolutionx - 0.5f);
 					pointingy = h * (0.5f - test_y / resolutiony);
-					dir = camera.transformation(float3{ pointingx, pointingy, d });
+					dir = camera.transformation({ pointingx, pointingy, d });
 					Ray test_ray{ camera.position, dir.normalize() };
 					if (objs[i]->IsHit(test_ray) < 0.00001)
 					{
@@ -71,7 +69,7 @@ Color Scene::tracepixel(int x, int y)
 					test_y = static_cast<float>(y) + 1.0f;
 					pointingx = w * (test_x / resolutionx - 0.5f);
 					pointingy = h * (0.5f - test_y / resolutiony);
-					dir = camera.transformation(float3{ pointingx, pointingy, d });
+					dir = camera.transformation({ pointingx, pointingy, d });
 					Ray test_ray{ camera.position, dir.normalize() };
 					if (objs[i]->IsHit(test_ray) < 0.00001)
 					{
@@ -83,7 +81,7 @@ Color Scene::tracepixel(int x, int y)
 					test_y = static_cast<float>(y) - 1.0f;
 					pointingx = w * (test_x / resolutionx - 0.5f);
 					pointingy = h * (0.5f - test_y / resolutiony);
-					dir = camera.transformation(float3{ pointingx, pointingy, d });
+					dir = camera.transformation({ pointingx, pointingy, d });
 					Ray test_ray{ camera.position, dir.normalize() };
 					if (objs[i]->IsHit(test_ray) < 0.00001)
 					{
@@ -96,23 +94,23 @@ Color Scene::tracepixel(int x, int y)
 			if (light.x < nearest || nearest < 0)
 			{
 				nearest = light.x;
-				color = float3{ light.y,light.z,light.w }.saturate(0.0f, 1.0f);
+				color = { light.y,light.z,light.w };
 			}
 		}
 	}
 	return translate_color(color);
 }
 
-Color Scene::translate_color(float3 c)
+rt::Color Scene::translate_color(rt::float3 c)
 {
-	return Color{ static_cast<BYTE>(c.z * 255.0f) ,static_cast<BYTE>(c.y * 255.0f) ,static_cast<BYTE>(c.x * 255.0f) };
+	return { static_cast<BYTE>(c.z * 255.0f) ,static_cast<BYTE>(c.y * 255.0f) ,static_cast<BYTE>(c.x * 255.0f) };
 }
 
 size_t Scene::Select(float x, float y)
 {
 	float pointingx = w * x;
 	float pointingy = h * y;
-	float3 dir{ pointingx, pointingy, d };
+	rt::float3 dir{ pointingx, pointingy, d };
 	dir = camera.transformation(dir);
 	Ray ray{ camera.position, dir.normalize() };
 
@@ -144,14 +142,46 @@ size_t Scene::Select(float x, float y)
 	}
 }
 
-void Scene::AddMesh(std::string path)
+void Scene::AddMesh(const std::string& path)
 {
 	Mesh* m = new Mesh(path);
-	Material material;
-	material.color = { 1,1,1 };
-	material.diffuse = 0;
-	material.reflectivity = 0.4f;
-	material.transparent = false;
-	material.refractive = 1.5;
-	objs.add(new mesh(m, float3{ 0,0,7 }, material, this));
+	objs.add(new mesh(m, { 0,0,7 }, this));
+}
+
+rt::float3 Scene::GetSkyColor(Ray& ray)
+{
+	if (skyimg.GetHeightMax() != 0)
+	{
+		float theta, u, v;
+		float dist = ray.dir.x * ray.dir.x + ray.dir.z * ray.dir.z;
+		v = dist >= 1 ? 0.5 : (ray.dir.y > 0 ? (0.5 + sqrtf(1 - (dist)) / 2.0) : (0.5 - sqrtf(1 - (dist)) / 2.0));
+		if (ray.dir.x != 0)
+		{
+			theta = atan(ray.dir.z / ray.dir.x);
+			if (ray.dir.x < 0)
+			{
+				theta += M_PI;
+			}
+			else if (ray.dir.z < 0)
+			{
+				theta += M_PI * 2;
+			}
+		}
+		else
+		{
+			theta = ray.dir.z > 0 ? M_PI_2 : M_PI_2 * 3;
+		}
+		
+		u = theta / (M_PI * 2);
+		int x = skyimg.GetWidthMax() * u; 
+		int y = skyimg.GetHeightMax() * v;
+
+		rt::Color color = skyimg.GetData(x, y);
+
+		float a = static_cast<float>(color.b) / 255.0f;
+		float b = static_cast<float>(color.g) / 255.0f;
+		float c = static_cast<float>(color.r) / 255.0f;
+		return{ c,b,a };
+	}
+	return { 0.4,0.4,0.7 };
 }

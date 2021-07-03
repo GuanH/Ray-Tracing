@@ -1,5 +1,7 @@
 #pragma once
 #define _USE_MATH_DEFINES
+#define TEXTURESAMPLER 0
+#define NORMALSAMPLER 1
 #include"meshloader.h"
 #include"ray.h"
 #include"scene.h"
@@ -13,26 +15,33 @@ struct Material
 	float reflectivity = 1;
 	float refractive = 0;
 	float ambient = 1;
-	float3 color = { 1.0f,1.0f,1.0f };
+	rt::float3 color = { 1.0f,1.0f,1.0f };
 	bool transparent = false;
+	bool has_texture_map = false;
+	bool has_normal_map = false;
 };
-
+struct Mesh_Hit_Type
+{
+	float t;
+	int hit_index;
+};
 class object
 {
 public:
-	object(float3 position, Scene* s) :pos(position), scene(s) {}
-	object(float3 position, Material Mat, Scene* s) :pos(position), material(Mat), scene(s) {}
+	object(rt::float3 position, Scene* s) :pos(position), scene(s) {}
+	object(rt::float3 position, Material Mat, Scene* s) :pos(position), material(Mat), scene(s) {}
+	virtual ~object() {};
 	Scene* scene;
-	float3 pos;
+	rt::float3 pos;
 	Material material;
 	enum class _Type { _sphere, _light, _plane, _mesh };
 	_Type Type = _Type::_sphere;
-	virtual float4 Hit(Ray ray, float n) = 0;
+	virtual rt::float4 Hit(Ray ray, float n) = 0;
 	virtual float IsHit(Ray ray) = 0;
 	virtual void randomize();
 	virtual object* Clone() const = 0;
 	virtual void Rotatation(float r, float p, float y) {};
-	virtual float3 GetRotation() { return{ 0,0,0 }; };
+	virtual rt::float3 GetRotation() { return{ 0,0,0 }; };
 	bool selected = false;
 protected:
 
@@ -45,9 +54,9 @@ protected:
 class sphere:public object
 {
 public:
-	sphere(float3 Pos, Scene* s, float r = 1) :object(Pos, s), radius(r), radius2(r * r) { Type = _Type::_sphere; }
-	sphere(float3 Pos, Material Mat, Scene* s, float r = 1) :object(Pos, Mat, s), radius(r), radius2(r* r){ Type = _Type::_sphere; }
-	float4 Hit(Ray ray, float n);
+	sphere(rt::float3 Pos, Scene* s, float r = 1) :object(Pos, s), radius(r), radius2(r * r) { Type = _Type::_sphere; }
+	sphere(rt::float3 Pos, Material Mat, Scene* s, float r = 1) :object(Pos, Mat, s), radius(r), radius2(r* r){ Type = _Type::_sphere; }
+	rt::float4 Hit(Ray ray, float n);
 	void randomize();
 	object* Clone() const
 	{
@@ -74,10 +83,10 @@ private:
 class light:public object
 {
 public:
-	light(float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_light; material.transparent = true; }
-	light(float3 Pos, float l, Scene* s, float r = 1) :object(Pos, s), luminance(l), radius(r), radius2(r * r) { Type = _Type::_light; material.transparent = true;}
-	light(float3 Pos, Material Mat, float l, Scene* s, float r = 1) :object(Pos,Mat,s), luminance(l), radius(r), radius2(r * r){ Type = _Type::_light; material.transparent = true;}
-	float4 Hit(Ray ray, float n);
+	light(rt::float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_light; material.transparent = true; }
+	light(rt::float3 Pos, float l, Scene* s, float r = 1) :object(Pos, s), luminance(l), radius(r), radius2(r * r) { Type = _Type::_light; material.transparent = true;}
+	light(rt::float3 Pos, Material Mat, float l, Scene* s, float r = 1) :object(Pos,Mat,s), luminance(l), radius(r), radius2(r * r){ Type = _Type::_light; material.transparent = true;}
+	rt::float4 Hit(Ray ray, float n);
 	void randomize();
 	object* Clone() const
 	{
@@ -103,9 +112,9 @@ private:
 class plane :public object
 {
 public:
-	plane(float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_plane; };
-	plane(float3 Pos,Material Mat, Scene* s) :object(Pos, Mat, s){ Type = _Type::_plane; };
-	float4 Hit(Ray ray, float n);
+	plane(rt::float3 Pos, Scene* s) :object(Pos, s) { Type = _Type::_plane; };
+	plane(rt::float3 Pos,Material Mat, Scene* s) :object(Pos, Mat, s){ Type = _Type::_plane; };
+	rt::float4 Hit(Ray ray, float n);
 	void randomize();
 	object* Clone() const
 	{
@@ -120,31 +129,28 @@ public:
 class mesh :public object
 {
 public:
-	mesh(Mesh* M, float3 Position, Material Mat, Scene* scene);
-	float4 Hit(Ray ray, float n);
-	float3 Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index);
+	mesh(Mesh* M, rt::float3 Position, Scene* scene);
+	~mesh();
+	rt::float4 Hit(Ray ray, float n);
+	rt::float3 Refract(Ray ray, rt::float3 hit_pos, rt::float3 normal, int hit_index);
 	void randomize();
 	float IsHit(Ray ray);
 	void Rotatation(float r, float p, float y);
-	float3 GetRotation() { return{ roll,pitch,yaw }; };
+	rt::float3 GetRotation() { return{ roll,pitch,yaw }; };
 	object* Clone() const
 	{
-		return new mesh(m, { 0,0,7 }, material, scene);
+		return new mesh(m, { 0,0,7 }, scene);
 	}
-	struct Mesh_Hit_Type
-	{
-		float t;
-		int hit_index;
-	};
+
 
 	inline Mesh_Hit_Type _IsHit(Ray ray);
 
 
-	inline float IsHitTriangle(Ray ray, float3 a, float3 b, float3 c, float n)
+	inline float IsHitTriangle(Ray ray, rt::float3 a, rt::float3 b, rt::float3 c, float n)
 	{
-		float3 A = b - a;
-		float3 B = c - a;
-		float3 uvt = SolveLinear(A, B, -ray.dir, ray.pos - a);
+		rt::float3 A = b - a;
+		rt::float3 B = c - a;
+		rt::float3 uvt = SolveLinear(A, B, -ray.dir, ray.pos - a);
 		float u = uvt.x;
 		float v = uvt.y;
 		float t = uvt.z;
@@ -155,10 +161,12 @@ public:
 		}
 		return -1;
 	};
+	rt::float3 GetTexture(Ray ray, int hit_index, int type);
+
 private:
 	Mesh* m;
 	float roll = 0;
 	float pitch = 0;
 	float yaw = 0;
-	std::vector<float3> vertices;
+	std::vector<rt::float3> vertices;
 };

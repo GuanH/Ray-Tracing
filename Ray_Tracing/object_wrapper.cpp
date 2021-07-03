@@ -5,7 +5,6 @@ void object_wrapper::add(object* obj)
 	bool trans = obj->material.transparent;
 	obj->material.transparent = false;
 	objects.push_back(obj);
-	randomize_lock.push_back(false);
 	if (trans)
 	{
 		obj->material.transparent = false;
@@ -20,29 +19,7 @@ object* object_wrapper::operator[](size_t i)
 
 void object_wrapper::randomize(size_t i)
 {
-	object* obj = (*this)[i];
-	if (!randomize_lock[i])
-	{
-		obj->randomize();
-	}	
-}
-
-void object_wrapper::SetRandomizeLock(size_t i, bool lock)
-{
-	randomize_lock[i] = lock;
-}
-
-bool object_wrapper::GetRandomizeLock(size_t i)
-{
-	return randomize_lock[i];
-}
-
-void object_wrapper::MakeSphereUpTo(int x, Scene* scene)
-{
-	for (size_t i = size(); i < x; i++)
-	{
-		add(new sphere{ float3{0,0,0}, scene });
-	}
+	objects[i]->randomize();
 }
 
 size_t object_wrapper::UpdateTransparent(size_t i, bool trans)
@@ -55,10 +32,6 @@ size_t object_wrapper::UpdateTransparent(size_t i, bool trans)
 		objects[i] = ta;
 		objects[transparent_object_size]->material.transparent = true;
 
-		bool tb = randomize_lock[transparent_object_size];
-		randomize_lock[transparent_object_size] = randomize_lock[i];
-		randomize_lock[i] = tb;
-
 		return transparent_object_size++;
 	}
 	else
@@ -68,9 +41,6 @@ size_t object_wrapper::UpdateTransparent(size_t i, bool trans)
 		objects[i] = ta;
 		objects[transparent_object_size - 1]->material.transparent = false;
 
-		bool tb = randomize_lock[transparent_object_size - 1];
-		randomize_lock[transparent_object_size - 1] = randomize_lock[i];
-		randomize_lock[i] = tb;
 
 		return --transparent_object_size;
 	}
@@ -79,8 +49,8 @@ size_t object_wrapper::UpdateTransparent(size_t i, bool trans)
 
 void object_wrapper::Delete(size_t i)
 {
+	delete objects[i];
 	objects.erase(objects.begin() + i);
-	randomize_lock.erase(randomize_lock.begin() + i);
 }
 
 void object_wrapper::Clone(size_t i)

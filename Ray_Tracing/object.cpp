@@ -1,5 +1,5 @@
 #include "object.h"
-#define CONSTANT 3
+//#define CONSTANT 3
 /*------------static member declare------------*/
 float object::ambient_a = 0.0f;
 float object::ambient_b = 0.7f;
@@ -19,14 +19,10 @@ void object::randomize()
 	float r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 	float g = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
 	float b = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
-	float diffuse = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)) / 4;
-	float reflect = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX));
-	Material m;
-	m.color = { r,g,b };
-	m.diffuse = diffuse;
-	m.reflectivity = reflect;
+
+	material.color = { r,g,b };
+
 	pos = { x,y,z };
-	material = m;
 }
 
 inline float object::ambient(float s)
@@ -41,10 +37,10 @@ inline float object::ambient(float s)
 
 /*------------sphere class------------*/
 //return { distance from the camera, color }
-float4 sphere::Hit(Ray ray, float n)
+rt::float4 sphere::Hit(Ray ray, float n)
 {
 	float t = IsHit(ray);
-	float3 hit_pos = ray.pos + ray.dir * t;
+	rt::float3 hit_pos = ray.pos + ray.dir * t;
 	//opposite direction
 	if (t < 0.00001 || (t > n && n > 0))
 	{
@@ -54,11 +50,12 @@ float4 sphere::Hit(Ray ray, float n)
 	{
 		return { t , {0,0,0} };
 	}
-	float3 normal = (hit_pos - pos) / radius;
-	float3 Color = { 0,0,0 };
+	ray.hop -= (1.0 - material.reflectivity) / 0.2;
+	rt::float3 normal = (hit_pos - pos) / radius;
+	rt::float3 Color = { 0,0,0 };
+	rt::float3 sky;
 	if (material.transparent)
 	{
-		Color = scene->sky;
 		float d_dot_n = ray.dir.dot(normal);
 		float sin_1 = sqrtf(1 - d_dot_n * d_dot_n);
 		float n1 = 1;
@@ -67,8 +64,8 @@ float4 sphere::Hit(Ray ray, float n)
 		{
 			return { 0.1f,0,0,0 };
 		}
-		float x = -d_dot_n * sin_2 * rsqrt(1 - sin_2 * sin_2);
-		float3 dir_refract = normal.cross(ray.dir.cross(normal)).normalize() * x - normal * sqrtf(1 - x * x);
+		float x = -d_dot_n * sin_2 * rt::rsqrt(1 - sin_2 * sin_2);
+		rt::float3 dir_refract = normal.cross(ray.dir.cross(normal)).normalize() * x - normal * sqrtf(1 - x * x);
 
 
 		float b = 2.0f * (dir_refract.dot(hit_pos - pos));
@@ -80,9 +77,9 @@ float4 sphere::Hit(Ray ray, float n)
 			return { 0.1f,0,0,0 };
 		}
 		float t = (-b + sqrtf(d)) / 2.0f;
-		float3 new_hit_pos = hit_pos + dir_refract * t;
+		rt::float3 new_hit_pos = hit_pos + dir_refract * t;
 
-		float3 new_normal = (pos - new_hit_pos) / radius;
+		rt::float3 new_normal = (pos - new_hit_pos) / radius;
 
 
 		d_dot_n = dir_refract.dot(new_normal);
@@ -93,10 +90,12 @@ float4 sphere::Hit(Ray ray, float n)
 		{
 			sin_2 = 1;
 		}
-		x = -d_dot_n * sin_2 * rsqrt(1 - sin_2 * sin_2);
+		x = -d_dot_n * sin_2 * rt::rsqrt(1 - sin_2 * sin_2);
 
 		ray.dir = new_normal.cross(dir_refract.cross(new_normal)).normalize() * x - new_normal * sqrtf(1 - x * x);
 		ray.pos = new_hit_pos;
+
+		Color = sky = scene->GetSkyColor(ray);
 	}
 	else
 	{
@@ -115,9 +114,9 @@ float4 sphere::Hit(Ray ray, float n)
 
 		ray.dir = (normal * (normal.dot(ray.pos - hit_pos)) * 2.0f + hit_pos - ray.pos).normalize();
 		ray.pos = hit_pos;
+		sky = scene->GetSkyColor(ray);
 	}
-	
-	float3 ambient_light = material.color* ambient(normal.dot(scene->light_dir));
+	rt::float3 ambient_light = material.color* ambient(normal.dot(scene->light_dir));
 
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
@@ -139,27 +138,27 @@ float4 sphere::Hit(Ray ray, float n)
 		}
 	}
 	
-	Color = scene->sky * (1 - material.ambient);
+	Color = sky * (1 - material.ambient);
 
 	float nearest = -1;
 	
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this) { continue; }
-		float4 light = scene->objs[i]->Hit(ray, nearest);
+		rt::float4 light = scene->objs[i]->Hit(ray, nearest);
 		if (light.x > 0.00001)
 		{
 			if (light.x < nearest || nearest < 0)
 			{
 				nearest = light.x;
-				Color = float3{ light.y,light.z,light.w };
+				Color = { light.y,light.z,light.w };
 			}
 		}
 	}
-	float3 reflection = Color * material.color;
+	rt::float3 reflection = Color * material.color;
 
 	reflection = reflection * material.reflectivity;
-	return { t, reflection + ambient_light * material.ambient };
+	return { t, (reflection + ambient_light * material.ambient).saturate() };
 }
 
 void sphere::randomize()
@@ -177,9 +176,8 @@ void sphere::randomize()
 
 
 /*------------light class------------*/
-float4 light::Hit(Ray ray, float n)
+rt::float4 light::Hit(Ray ray, float n)
 {
-
 	float t = IsHit(ray);
 	if (t < 0.00001 || (t > n && n > 0))
 	{
@@ -189,10 +187,14 @@ float4 light::Hit(Ray ray, float n)
 	{
 		return { t , {0,0,0} };
 	}
-	float m = ray.dir.dot(pos - ray.pos) - t;
-	float x =  m / radius + 0.6f;
 
-	return { t, material.color*x };
+	rt::float3 ambient = { 0.05,0.05,0.05 };
+	constexpr float attConst = 1;
+	constexpr float attLin = 0.045;
+	constexpr float attQuad = 0.0075;
+	const float att = 1 / (attConst + attLin * t + attQuad * t * t);
+	rt::float3 diffuse = material.color * (luminance * att);
+	return { t,diffuse.saturate() };
 }
 
 void light::randomize()
@@ -209,27 +211,28 @@ void light::randomize()
 
 
 /*------------plane class------------*/
-float4 plane::Hit(Ray ray, float n)
+rt::float4 plane::Hit(Ray ray, float n)
 {
-
 	float t = IsHit(ray);
 	if (t < 0.000027 || (ray.dir.y == 0) || (t > n && n > 0))
 	{
-		return { -1, float3{0,0,0} };
+		return { -1, 0, 0, 0};
 	}
 	if (--ray.hop <= 0)
 	{
-		return { t, {0,0,0} };
+		return { t, 0, 0, 0 };
 	}
-	float3 hit_pos = ray.pos + ray.dir * t;
-	float3 ambient_light;
+	ray.hop -= (1.0 - material.reflectivity) / 0.2;
+	rt::float3 sky = scene->GetSkyColor(ray);
+	rt::float3 hit_pos = ray.pos + ray.dir * t;
+	rt::float3 ambient_light;
 	if (material.diffuse != 0)
 	{
 		float diffuse_r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)) * material.diffuse;
 		float diffuse_phi = static_cast<float>(rand());
 		float diffuse_theta = static_cast<float>(rand());
 
-		float3 normal = float3{ diffuse_r * cos(diffuse_phi) * sin(diffuse_theta) , diffuse_r * sin(diffuse_phi) * sin(diffuse_theta) + 1.0f, diffuse_r * cos(diffuse_theta) }.normalize();
+		rt::float3 normal = rt::float3{ diffuse_r * cos(diffuse_phi) * sin(diffuse_theta) , diffuse_r * sin(diffuse_phi) * sin(diffuse_theta) + 1.0f, diffuse_r * cos(diffuse_theta) }.normalize();
 		ray.dir = (normal * (normal.dot(ray.pos - hit_pos)) * 2.0f + hit_pos - ray.pos).normalize();
 		ambient_light = material.color * ambient(normal.dot(scene->light_dir));
 	}
@@ -261,31 +264,26 @@ float4 plane::Hit(Ray ray, float n)
 	}
 
 	float nearest = -1;
-	float3 Color = { 0,0,0 };
+	rt::float3 Color = sky * (1 - material.ambient);
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this) { continue; }
-		float4 light = scene->objs[i]->Hit(ray, nearest);
+		rt::float4 light = scene->objs[i]->Hit(ray, nearest);
 		if (light.x > 0.00001)
 		{
 			if (light.x < nearest || nearest < 0)
 			{
 				nearest = light.x;
-				Color = float3{ light.y,light.z,light.w };
+				Color = { light.y,light.z,light.w };
 			}
 		}
 	}
 
-	float3 reflection = Color* material.color;
-	if (nearest > 0)
-	{
-		float factor = 1 / nearest * CONSTANT;
-		if (factor < 1)
-		{
-			reflection = reflection * factor;
-		}
-	}
-	return { t, reflection * material.reflectivity + ambient_light };
+
+	rt::float3 reflection = Color * material.color;
+
+	reflection = reflection * material.reflectivity;
+	return { t, (reflection + ambient_light * material.ambient).saturate() };
 }
 
 void plane::randomize()
@@ -299,13 +297,13 @@ void plane::randomize()
 
 
 /*------------mesh class------------*/
-mesh::mesh(Mesh* M, float3 Position, Material Mat, Scene* scene) :m(M), object(Position, Mat, scene) {
+mesh::mesh(Mesh* M, rt::float3 Position, Scene* scene) :m(M), object(Position, *M->material, scene) {
+	M->owner.push_back(this);
 	Type = _Type::_mesh; vertices = m->vertices;
 };
 
 float mesh::IsHit(Ray ray)
 {
-
 	float b = 2.0f * (ray.dir.dot(ray.pos - pos));
 	float c = ray.pos.dot(ray.pos) + pos.dot(pos) - 2.0f * ray.pos.dot(pos) - m->radius2;
 	float d = b * b - 4.0f * c;
@@ -329,8 +327,53 @@ float mesh::IsHit(Ray ray)
 	}
 	return nearest;
 }
+mesh::~mesh()
+{
+	int i;
+	for (i = 0; i < m->owner.size(); i++)
+	{
+		if (m->owner[i] == this)
+		{
+			break;
+		}
+	}
+	try
+	{
+		m->owner.erase(m->owner.begin() + i);
+	}
+	catch (std::exception& e)
+	{
+		return;
+	}
+	if (m->owner.size() == 0)
+	{
+		delete  m;
+	}
+}
+rt::float3 mesh::GetTexture(Ray ray, int hit_index, int type)
+{
+	rt::float3& a = vertices[m->indices[hit_index]];
+	rt::float3& b = vertices[m->indices[hit_index + 1]];
+	rt::float3& c = vertices[m->indices[hit_index + 2]];
 
-inline mesh::Mesh_Hit_Type mesh::_IsHit(Ray ray)
+	rt::float3 A = b - a;
+	rt::float3 B = c - a;
+	rt::float3 uvt = SolveLinear(A, B, -ray.dir, ray.pos - a - pos);
+	float u = uvt.x;
+	float v = uvt.y;
+	if (u < 0)u = 0;
+	if (v < 0)v = 0;
+	if (u + v > 1) { v = 1.0f - u; }
+	rt::float2 a_ = m->vertices_texture[m->indices_texture[hit_index]];
+	rt::float2 b_ = m->vertices_texture[m->indices_texture[hit_index + 1]];
+	rt::float2 c_ = m->vertices_texture[m->indices_texture[hit_index + 2]];
+	rt::float2 A_ = b_ - a_;
+	rt::float2 B_ = c_ - a_;
+	rt::float2 uv = a_ + A_ * u + B_ * v;
+	return m->Sampler(uv, type);
+}
+
+inline Mesh_Hit_Type mesh::_IsHit(Ray ray)
 {
 	float b = 2.0f * (ray.dir.dot(ray.pos - pos));
 	float c = ray.pos.dot(ray.pos) + pos.dot(pos) - 2.0f * ray.pos.dot(pos) - m->radius2;
@@ -359,7 +402,7 @@ inline mesh::Mesh_Hit_Type mesh::_IsHit(Ray ray)
 	return Mesh_Hit_Type{ nearest, hit_index };
 }
 
-float4 mesh::Hit(Ray ray, float n)
+rt::float4 mesh::Hit(Ray ray, float n)
 {
 	Mesh_Hit_Type Hit = _IsHit(ray);
 	float t = Hit.t;
@@ -373,15 +416,19 @@ float4 mesh::Hit(Ray ray, float n)
 	{
 		return { t , {0,0,0} };
 	}
-	float3 a = vertices[m->indices[hit_index]];
-	float3 b = vertices[m->indices[hit_index+1]];
-	float3 c = vertices[m->indices[hit_index+2]];
-	float3 A = b - a;
-	float3 B = c - a;
-	float3 normal = A.cross(B).normalize();
-	float3 hit_pos = ray.pos + ray.dir * t;
-	float3 ambient_light = material.color * ambient(-normal.dot(scene->light_dir));
+	ray.hop -= (1.0 - material.reflectivity) / 0.2;
 
+	rt::float3 a = vertices[m->indices[hit_index]];
+	rt::float3 b = vertices[m->indices[hit_index+1]];
+	rt::float3 c = vertices[m->indices[hit_index+2]];
+	rt::float3 A = b - a;
+	rt::float3 B = c - a;
+	rt::float3 hit_pos = ray.pos + ray.dir * t;
+	rt::float3 normal = material.has_normal_map ? GetTexture(ray, hit_index, NORMALSAMPLER) : A.cross(B);
+	normal = normal.normalize();
+	rt::float3 this_color = material.has_texture_map ? GetTexture(ray, hit_index, TEXTURESAMPLER) : material.color;
+	rt::float3 ambient_light = this_color * ambient(normal.dot(scene->light_dir));
+	rt::float3 sky = scene->GetSkyColor(ray);
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this)
@@ -408,12 +455,12 @@ float4 mesh::Hit(Ray ray, float n)
 
 	if (material.transparent)
 	{
-		float3 light = Refract(ray, hit_pos, normal, hit_index);
+		rt::float3 light = Refract(ray, hit_pos, normal, hit_index);
 		return { t, light };
 	}
 	else
 	{
-		if (material.diffuse != 0)
+		if (material.diffuse != 0 && !material.has_normal_map)
 		{
 			float diffuse_r = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)) * material.diffuse;
 			float diffuse_phi = static_cast<float>(rand());
@@ -431,37 +478,31 @@ float4 mesh::Hit(Ray ray, float n)
 
 	
 	float nearest = -1;
-	float3 Color = { 0,0,0 };
+	rt::float3 Color = sky * (1 - material.ambient);
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this)
 		{
 			continue;
 		}
-		float4 light = scene->objs[i]->Hit(ray, nearest);
+		rt::float4 light = scene->objs[i]->Hit(ray, nearest);
 		if (light.x > 0.00001)
 		{
 			if (light.x < nearest || nearest < 0)
 			{
 				nearest = light.x;
-				Color = float3{ light.y,light.z,light.w };
+				Color = { light.y,light.z,light.w };
 			}
 		}
 	}
 
-	float3 reflection = Color * material.color;
-	if (nearest > 0)
-	{
-		float factor = 1 / nearest * CONSTANT;
-		if (factor < 1)
-		{
-			reflection = reflection * factor;
-		}
-	}
-	return { t, reflection * material.reflectivity + ambient_light };
+	rt::float3 reflection = Color * this_color;
+
+	reflection = reflection * material.reflectivity;
+	return { t, (reflection + ambient_light * material.ambient).saturate() };
 }
 
-float3 mesh::Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index)
+rt::float3 mesh::Refract(Ray ray, rt::float3 hit_pos, rt::float3 normal, int hit_index)
 {
 	if (--ray.hop <= 0)
 	{
@@ -485,13 +526,13 @@ float3 mesh::Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index)
 	}
 	float sin_2 = n1 * sin_1 / n2;
 	
-	float3 color = {1,0,1};
+	rt::float3 color = {1,0,1};
 	if (sin_2 > 1)//total internal reflection
 	{
 
 		ray.dir = (normal * (normal.dot(ray.pos - hit_pos)) * 2.0f + hit_pos - ray.pos).normalize();
 		ray.pos = hit_pos;
-		float4 light = Hit(ray, -1);
+		rt::float4 light = Hit(ray, -1);
 		if (light.x > 0.00001)
 		{
 			color.x = light.y;
@@ -503,7 +544,7 @@ float3 mesh::Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index)
 	{
 		if (material.refractive !=1 )
 		{
-			float x = -d_dot_n * sin_2 * rsqrt(1 - sin_2 * sin_2);
+			float x = -d_dot_n * sin_2 * rt::rsqrt(1 - sin_2 * sin_2);
 			ray.dir = normal.cross(ray.dir.cross(normal)).normalize() * x - normal * sqrtf(1 - x * x);
 			if (d_dot_n > 0.00001) { ray.dir = -ray.dir; }
 		}
@@ -514,16 +555,16 @@ float3 mesh::Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index)
 		if (d_dot_n > 0.00001)//inner -> outer
 		{
 			inner_to_outer:
-			color = scene->sky;
+			color =  scene->GetSkyColor(ray);;
 			for (int i = 0; i < scene->objs.size(); i++)
 			{
-				float4 light = scene->objs[i]->Hit(ray, nearest);
+				rt::float4 light = scene->objs[i]->Hit(ray, nearest);
 				if (light.x > 0.00001)
 				{
 					if (light.x < nearest || nearest < 0)
 					{
 						nearest = light.x;
-						color = float3{ light.y,light.z,light.w };
+						color = { light.y,light.z,light.w };
 					}
 				}
 			}
@@ -532,20 +573,20 @@ float3 mesh::Refract(Ray ray, float3 hit_pos, float3 normal, int hit_index)
 		{
 			for (int i = hit_index; i < hit_index + 3; i++)
 			{
-				float3 dif = ray.pos - vertices[m->indices[i]] - pos;
+				rt::float3 dif = ray.pos - vertices[m->indices[i]] - pos;
 				if (dif.dot(dif) < 0.008)
 				{
 					goto inner_to_outer;
 				}
 			}
 
-			float4 light = Hit(ray, nearest);
+			rt::float4 light = Hit(ray, nearest);
 			if (light.x > 0.00001)
 			{
 				if (light.x < nearest || nearest < 0)
 				{
 					nearest = light.x;
-					color = float3{ light.y,light.z,light.w };
+					color = { light.y,light.z,light.w };
 				}
 			}
 		}
@@ -569,12 +610,12 @@ void mesh::Rotatation(float r, float p, float y)
 	float d = sin(_roll);
 	float e = sin(_yaw);
 	float f = cos(_roll);
-	float3 m_1 = { a * b, a * c * d - e * f, a * c * f + e * d };
-	float3 m_2 = { e * b, e * c * d + a * f, e * c * f - a * d };
-	float3 m_3 = { -c, b * d, b * f };
+	rt::float3 m_1 = { a * b, a * c * d - e * f, a * c * f + e * d };
+	rt::float3 m_2 = { e * b, e * c * d + a * f, e * c * f - a * d };
+	rt::float3 m_3 = { -c, b * d, b * f };
 	for (int i = 0; i < m->vertices.size(); i++)
 	{
-		float3 p = m->vertices[i];
+		rt::float3 p = m->vertices[i];
 		float x = p.dot(m_1);
 		float y = p.dot(m_2);
 		float z = p.dot(m_3);

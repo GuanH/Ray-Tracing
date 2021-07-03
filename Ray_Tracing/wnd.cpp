@@ -106,9 +106,10 @@ LRESULT wnd::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 								pthis->gfx->CopyButtonDown();
 								break;
 							}
-							case BUTTON_ID_RANDOMIZECHECK:
+							case BUTTON_ID_EXPORT:
 							{
-								pthis->gfx->SelectRandomizeCheck();
+								pthis->gfx->ExportButtonDown();
+								break;
 							}
 						}
 						break;
@@ -139,7 +140,7 @@ const HWND& wnd::gethandle()
 void wnd::processmessage()
 {
 	MSG msg = { 0 };
-	while (GetMessage(&msg, NULL, NULL, NULL))
+	while (GetMessage(&msg, NULL, NULL, NULL) != 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -148,7 +149,7 @@ void wnd::processmessage()
 			gfx->render();
 			gfx->isRender = false;
 		}
-		Sleep(1);
+		Sleep(0);
 	}
 }
 void wnd::setwndsize()

@@ -26,13 +26,13 @@ Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x), wndheight(y)
 	Edit_SetCueBannerText(htext_cam_pitch, L"pitch");
 	Edit_SetCueBannerText(htext_cam_yaw, L"yaw");
 
-	htext_select_pos_x =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 260, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_pos_y =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 290, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_pos_z =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 320, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_diffuse =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 350, 38, 50, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_reflectivity =		CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 400, 38, 50, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_ambient =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 450, 38, 50, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	htext_select_refractive =		CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 500, 38, 50, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_pos_x =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 260, 38, 45, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_pos_y =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 305, 38, 45, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_pos_z =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 350, 38, 45, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_diffuse =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 395, 38, 38, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_reflectivity =		CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 432, 38, 38, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_ambient =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 471, 38, 38, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+	htext_select_refractive =		CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 509, 38, 38, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	htext_select_color_r =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 550, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	htext_select_color_g =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 580, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	htext_select_color_b =			CreateWindow("Edit", NULL, WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER, 610, 38, 30, 22, hwnd, NULL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
@@ -45,17 +45,17 @@ Graphic::Graphic(HWND hwnd, int x, int y) :hwnd(hwnd), wndwidth(x), wndheight(y)
 	hbutton_select_set =			CreateWindow("BUTTON", "Set",			WS_VISIBLE | WS_CHILD | WS_BORDER,		870, 38, 30, 22,	hwnd, (HMENU)BUTTON_ID_SET, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	hbutton_select_delete =			CreateWindow("BUTTON", "Del",			WS_VISIBLE | WS_CHILD | WS_BORDER,		900, 38, 30, 22,	hwnd, (HMENU)BUTTON_ID_DELETE, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	hbutton_copy =					CreateWindow("BUTTON", "Copy",			WS_VISIBLE | WS_CHILD | WS_BORDER,		930, 38, 50, 22,	hwnd, (HMENU)BUTTON_ID_COPY, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	hbutton_load_mesh =				CreateWindow("BUTTON", "Load Mesh",		WS_VISIBLE | WS_CHILD | WS_BORDER,		820, 7,  80, 22,	hwnd, (HMENU)BUTTON_ID_LOAD, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-	hbutton_select_randomlock =		CreateWindow("BUTTON", "Randomized",	WS_VISIBLE | WS_CHILD | BS_CHECKBOX,	710, 7, 100, 22,	hwnd, (HMENU)BUTTON_ID_RANDOMIZECHECK, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
-
+	hbutton_load_mesh =				CreateWindow("BUTTON", "Load Mesh",		WS_VISIBLE | WS_CHILD | WS_BORDER,		740, 7,  80, 22,	hwnd, (HMENU)BUTTON_ID_LOAD, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
 	
+	hbutton_export =				CreateWindow("BUTTON", "Export", WS_VISIBLE | WS_CHILD | WS_BORDER, 820, 7, 80, 22, hwnd, (HMENU)BUTTON_ID_EXPORT, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), NULL);
+
 	Edit_SetCueBannerText(htext_select_pos_x, L"x");
 	Edit_SetCueBannerText(htext_select_pos_y, L"y");
 	Edit_SetCueBannerText(htext_select_pos_z, L"z");
-	Edit_SetCueBannerText(htext_select_diffuse, L"diffuse");
-	Edit_SetCueBannerText(htext_select_reflectivity, L"reflect");
-	Edit_SetCueBannerText(htext_select_ambient, L"ambient");
-	Edit_SetCueBannerText(htext_select_refractive, L"refract");
+	Edit_SetCueBannerText(htext_select_diffuse, L"diff");
+	Edit_SetCueBannerText(htext_select_reflectivity, L"refl");
+	Edit_SetCueBannerText(htext_select_ambient, L"amb");
+	Edit_SetCueBannerText(htext_select_refractive, L"refr");
 	Edit_SetCueBannerText(htext_select_color_r, L"r");
 	Edit_SetCueBannerText(htext_select_color_g, L"g");
 	Edit_SetCueBannerText(htext_select_color_b, L"b");
@@ -110,11 +110,11 @@ void Graphic::render()
 
 void Graphic::randomize_object()
 {
-	sc->objs.MakeSphereUpTo(8, sc);
-	srand(clock());
-	for (int i = 0; i < sc->objs.size(); i++)
+	if (sc->selected != -1)
 	{
-		sc->objs.randomize(i);
+		srand(clock());
+		sc->objs.randomize(sc->selected);
+		UpdateUI();
 	}
 }
 
@@ -163,63 +163,69 @@ void Graphic::RenderButtonDown()
 	char s[10];
 	int res_x, res_y;
 	GetWindowText(htext_res_x, s, 10);
-	if (strlen(s) > 0)
+	try
 	{
-		res_x = strtol(s, NULL, 10);
-		if (res_x > 0)
+		if (strlen(s) > 0)
 		{
-			GetWindowText(htext_res_y, s, 10);
-			if (strlen(s) > 0)
+			res_x = strtol(s, NULL, 10);
+			if (res_x > 0)
 			{
-				res_y = strtol(s, NULL, 10);
-				if (res_y > 0)
+				GetWindowText(htext_res_y, s, 10);
+				if (strlen(s) > 0)
 				{
-					updateresolution(res_x, res_y);
+					res_y = strtol(s, NULL, 10);
+					if (res_y > 0)
+					{
+						updateresolution(res_x, res_y);
+					}
 				}
 			}
 		}
+
+
+		GetWindowText(htext_cam_x, s, 10);
+		float x, y, z, roll, pitch, yaw;
+		x = (strlen(s) > 0) ? std::stof(s) : 0;
+
+		GetWindowText(htext_cam_y, s, 10);
+		y = (strlen(s) > 0) ? std::stof(s) : 0;
+
+		GetWindowText(htext_cam_z, s, 10);
+		z = (strlen(s) > 0) ? std::stof(s) : 0;
+
+		GetWindowText(htext_cam_roll, s, 10);
+		roll = (strlen(s) > 0) ? -std::stof(s) : 0;
+
+
+		GetWindowText(htext_cam_pitch, s, 10);
+		pitch = (strlen(s) > 0) ? std::stof(s) : 0;
+
+		GetWindowText(htext_cam_yaw, s, 10);
+		yaw = (strlen(s) > 0) ? std::stof(s) : 0;
+
+		roll *= float(M_PI) / 180.0f;
+		pitch *= float(M_PI) / 180.0f;
+		yaw *= float(M_PI) / 180.0f;
+		sc->camera.Update(rt::float3{ x,y,z }, roll, pitch, yaw);
+
+		isRender = true;
 	}
-
-
-	GetWindowText(htext_cam_x, s, 10);
-	float x, y, z, roll, pitch, yaw;
-	x = (strlen(s) > 0) ? std::stof(s) : 0;
-
-	GetWindowText(htext_cam_y, s, 10);
-	y = (strlen(s) > 0) ? std::stof(s) : 0;
-
-	GetWindowText(htext_cam_z, s, 10);
-	z = (strlen(s) > 0) ? std::stof(s) : 0;
-
-	GetWindowText(htext_cam_roll, s, 10);
-	roll = (strlen(s) > 0) ? std::stof(s) : 0;
-
-
-	GetWindowText(htext_cam_pitch, s, 10);
-	pitch = (strlen(s) > 0) ? std::stof(s) : 0;
-	
-	GetWindowText(htext_cam_yaw, s, 10);
-	yaw = (strlen(s) > 0) ? std::stof(s) : 0;
-
-	roll *= float(M_PI) / 180.0f;
-	pitch *= float(M_PI) / 180.0f;
-	yaw *= float(M_PI) / 180.0f;
-	sc->camera.Update(float3{ x,y,z }, roll, pitch, yaw);
-
-	isRender = true;
+	catch (std::exception& e)
+	{
+		return;
+	}
 }
 
 void Graphic::RandomButtonDown()
 {
 	randomize_object();
 	UpdateUI();
-	isRender = true;
 }
 
 void Graphic::SetThreadButtonDown()
 {
 	char buf[10];
-	int err = GetWindowText(htext_thread, buf, 3);
+	int err = GetWindowText(htext_thread, buf, 10);
 	if (err != 0)
 	{
 		std::stringstream ss;
@@ -236,15 +242,15 @@ void Graphic::SetThreadButtonDown()
 
 void Graphic::SelectTransparentCheck()
 {
-	UINT state = IsDlgButtonChecked(hwnd, 3);
+	UINT state = IsDlgButtonChecked(hwnd, BUTTON_ID_TRANSPARENTCHECK);
 
 	if (state == BST_CHECKED)
 	{
-		CheckDlgButton(hwnd, 3, BST_UNCHECKED);
+		CheckDlgButton(hwnd, BUTTON_ID_TRANSPARENTCHECK, BST_UNCHECKED);
 	}
 	else
 	{
-		CheckDlgButton(hwnd, 3, BST_CHECKED);
+		CheckDlgButton(hwnd, BUTTON_ID_TRANSPARENTCHECK, BST_CHECKED);
 	}
 	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 }
@@ -257,80 +263,71 @@ void Graphic::SelectSet()
 	{
 		char s[10];
 		float x, y, z, diffuse, reflectivity, ambient, refractive, r, g, b, roll, pitch, yaw;
-
-		GetWindowText(htext_select_pos_x, s, 10);
-		x = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_pos_y, s, 10);
-		y = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_pos_z, s, 10);
-		z = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_diffuse, s, 10);
-		diffuse = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_reflectivity, s, 10);
-		reflectivity = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_ambient, s, 10);
-		ambient = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_refractive, s, 10);
-		refractive = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_color_r, s, 10);
-		r = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_color_g, s, 10);
-		g = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_color_b, s, 10);
-		b = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_roll, s, 10);
-		roll = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_pitch, s, 10);
-		pitch = (strlen(s) > 0) ? std::stof(s) : 0;
-
-		GetWindowText(htext_select_yaw, s, 10);
-		yaw = (strlen(s) > 0) ? std::stof(s) : 0;
-
-
-
-
-		object* obj = sc->objs[index];
-		obj->pos = { x,y,z };
-		obj->material.diffuse = diffuse;
-		obj->material.reflectivity = reflectivity;
-		obj->material.ambient = ambient;
-		obj->material.refractive = refractive;
-		obj->material.color = { r,g,b };
-		obj->Rotatation(roll, pitch, yaw);
-		UINT state = IsDlgButtonChecked(hwnd, 3);
-
-		if (state == BST_CHECKED)
+		try
 		{
-			sc->selected = sc->objs.UpdateTransparent(index, true);
-		}
-		else
-		{
-			sc->selected = sc->objs.UpdateTransparent(index, false);
-		}
+			GetWindowText(htext_select_pos_x, s, 10);
+			x = (strlen(s) > 0) ? std::stof(s) : 0;
 
-		state = IsDlgButtonChecked(hwnd, 8);
+			GetWindowText(htext_select_pos_y, s, 10);
+			y = (strlen(s) > 0) ? std::stof(s) : 0;
 
-		if (state == BST_CHECKED)
-		{
-			sc->objs.SetRandomizeLock(index, false);
-		}
-		else
-		{
-			sc->objs.SetRandomizeLock(index, true);
-		}
+			GetWindowText(htext_select_pos_z, s, 10);
+			z = (strlen(s) > 0) ? std::stof(s) : 0;
 
-		isRender = true;
+			GetWindowText(htext_select_diffuse, s, 10);
+			diffuse = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_reflectivity, s, 10);
+			reflectivity = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_ambient, s, 10);
+			ambient = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_refractive, s, 10);
+			refractive = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_color_r, s, 10);
+			r = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_color_g, s, 10);
+			g = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_color_b, s, 10);
+			b = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_roll, s, 10);
+			roll = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_pitch, s, 10);
+			pitch = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			GetWindowText(htext_select_yaw, s, 10);
+			yaw = (strlen(s) > 0) ? std::stof(s) : 0;
+
+			object* obj = sc->objs[index];
+			obj->pos = { x,y,z };
+			obj->material.diffuse = diffuse;
+			obj->material.reflectivity = reflectivity;
+			obj->material.ambient = ambient;
+			obj->material.refractive = refractive;
+			obj->material.color = { r,g,b };
+			obj->Rotatation(roll, pitch, yaw);
+			UINT state = IsDlgButtonChecked(hwnd, BUTTON_ID_TRANSPARENTCHECK);
+
+			if (state == BST_CHECKED)
+			{
+				sc->selected = sc->objs.UpdateTransparent(index, true);
+			}
+			else
+			{
+				sc->selected = sc->objs.UpdateTransparent(index, false);
+			}
+			UpdateUI();
+		}
+		catch (std::exception& e)
+		{
+			return;
+		}
 	}
 }
 
@@ -341,7 +338,8 @@ void Graphic::SelectDelete()
 	{
 		sc->objs.Delete(index);
 	}
-	isRender = true;
+	sc->selected = -1;
+	UpdateUI();
 }
 
 void Graphic::LoadMeshButtonDown()
@@ -355,14 +353,14 @@ void Graphic::LoadMeshButtonDown()
 	opf.nMaxFileTitle = MAX_PATH;
 	opf.lpstrFileTitle = FilePath;
 	opf.lpstrFile = FilePath;
-	opf.lpstrTitle = "Select a Mesh";
+	opf.lpstrTitle = "Open";
 	opf.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_READONLY;
 
 	if (GetOpenFileName(&opf))
 	{
 		sc->AddMesh(opf.lpstrFile);
 	}
-	isRender = true;
+	UpdateUI();
 }
 
 void Graphic::CopyButtonDown()
@@ -371,24 +369,30 @@ void Graphic::CopyButtonDown()
 	if (index != -1)
 	{
 		sc->objs.Clone(index);
-		isRender = true;
+		UpdateUI();
 	}	
 }
 
-void Graphic::SelectRandomizeCheck()
+void Graphic::ExportButtonDown()
 {
-	UINT state = IsDlgButtonChecked(hwnd, 8);
-
-	if (state == BST_CHECKED)
+	OPENFILENAMEA opf = { 0 };
+	char FilePath[MAX_PATH] = "RayTracingResult.bmp\0";
+	opf.lStructSize = sizeof(OPENFILENAME);
+	opf.hwndOwner = hwnd;
+	opf.lpstrFilter = "BMP Files(*.bmp)\0*.bmp\0\0";
+	opf.nMaxFile = MAX_PATH;
+	opf.nMaxFileTitle = MAX_PATH;
+	opf.lpstrFileTitle = NULL;
+	opf.lpstrFile = FilePath;
+	opf.lpstrTitle = "Save As";
+	opf.lpstrDefExt = ".bmp\0";
+	opf.Flags = OFN_CREATEPROMPT | OFN_DONTADDTORECENT | OFN_NOVALIDATE | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+	if (GetSaveFileName(&opf))
 	{
-		CheckDlgButton(hwnd, 8, BST_UNCHECKED);
+		SaveResult(opf.lpstrFile);
 	}
-	else
-	{
-		CheckDlgButton(hwnd, 8, BST_CHECKED);
-	}
-	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 }
+
 
 void Graphic::Select(float x,float y)
 {
@@ -414,7 +418,7 @@ void Graphic::ProcessPixels()
 			{
 				for (int k = 0; k < resolutionx; k++)
 				{
-					Color r = sc->tracepixel(k, resolutiony - j);
+					rt::Color r = sc->tracepixel(k, resolutiony - j);
 					size_t index = (width * j + k * 3);
 					t_result[index] = r.b;
 					t_result[index + 1] = r.g;
@@ -431,7 +435,7 @@ void Graphic::ProcessPixels()
 		{
 			for (int j = 0; j < resolutionx; j++)
 			{
-				Color r = sc->tracepixel(j, resolutiony - i);
+				rt::Color r = sc->tracepixel(j, resolutiony - i);
 				int index = (width * i + j * 3);
 				t_result[index] = r.b;
 				t_result[index + 1] = r.g;
@@ -494,7 +498,7 @@ void Graphic::UpdateUI()
 		ss >> buf; ss.clear();
 		SetWindowText(htext_select_color_b, buf.c_str());
 
-		float3 rotation = sc->objs[index]->GetRotation();
+		rt::float3 rotation = sc->objs[index]->GetRotation();
 
 		ss << rotation.x;
 		ss >> buf; ss.clear();
@@ -510,20 +514,11 @@ void Graphic::UpdateUI()
 
 		if (sc->objs[index]->material.transparent)
 		{
-			CheckDlgButton(hwnd, 3, BST_CHECKED);
+			CheckDlgButton(hwnd, BUTTON_ID_TRANSPARENTCHECK, BST_CHECKED);
 		}
 		else
 		{
-			CheckDlgButton(hwnd, 3, BST_UNCHECKED);
-		}
-
-		if (sc->objs.GetRandomizeLock(index))
-		{
-			CheckDlgButton(hwnd, 8, BST_UNCHECKED);
-		}
-		else
-		{
-			CheckDlgButton(hwnd, 8, BST_CHECKED);
+			CheckDlgButton(hwnd, BUTTON_ID_TRANSPARENTCHECK, BST_UNCHECKED);
 		}
 	}
 	else
@@ -541,8 +536,33 @@ void Graphic::UpdateUI()
 		SetWindowText(htext_select_roll, NULL);
 		SetWindowText(htext_select_pitch, NULL);
 		SetWindowText(htext_select_yaw, NULL);
-		CheckDlgButton(hwnd, 3, BST_UNCHECKED);
-		CheckDlgButton(hwnd, 8, BST_UNCHECKED);
+		CheckDlgButton(hwnd, BUTTON_ID_TRANSPARENTCHECK, BST_UNCHECKED);
+	}
+	if (resolutionx > 256 && resolutiony > 256)
+	{
+		updateresolution(256, 256);
 	}
 	isRender = true;
+}
+
+void Graphic::SaveResult(const std::string& path)
+{
+	std::ofstream file(path, std::ios::binary);//this sh!t really fuxked me up (0A -> 0D0A)
+	if (file.is_open())
+	{
+		int pad = (4 - ((resolutionx * 3) % 4)) % 4;
+		int padded_width = resolutionx * 3 + pad;
+
+		BITMAPFILEHEADER bfh;
+		bfh.bfType = 0x4d42;
+		bfh.bfSize = result.size() * sizeof(BYTE) + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+		bfh.bfReserved1 = 0;
+		bfh.bfReserved2 = 0;
+		bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+		file.write(reinterpret_cast<char*>(&bfh), sizeof(BITMAPFILEHEADER));
+		file.write(reinterpret_cast<char*>(&(BitmapInfo.bmiHeader)), sizeof(BITMAPINFOHEADER));
+		file.write(reinterpret_cast<char*>(result.data()), result.size() * sizeof(BYTE));
+		file.close();
+	}
 }

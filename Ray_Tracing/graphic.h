@@ -9,7 +9,7 @@
 #define BUTTON_ID_DELETE 5
 #define BUTTON_ID_LOAD 6
 #define BUTTON_ID_COPY 7
-#define BUTTON_ID_RANDOMIZECHECK 8
+#define BUTTON_ID_EXPORT 8
 #include"scene.h"
 #include<vector>
 #include<Windows.h>
@@ -35,7 +35,7 @@ public:
 	void SelectDelete();
 	void LoadMeshButtonDown();
 	void CopyButtonDown();
-	void SelectRandomizeCheck();
+	void ExportButtonDown();
 	void Select(float x, float y);
 	bool isRender = true;
 	Scene* sc;
@@ -73,8 +73,7 @@ private:
 	HWND htext_select_roll = 0;
 	HWND htext_select_pitch = 0;
 	HWND htext_select_yaw = 0;
-
-	HWND hbutton_select_randomlock = 0;
+	HWND hbutton_export = 0;
 
 	HDC hdc;
 	BITMAPINFO BitmapInfo = {0};
@@ -86,5 +85,6 @@ private:
 	std::vector<std::thread> threads;
 	void ProcessPixels();
 	void UpdateUI();
+	void SaveResult(const std::string& path);
 	friend class wnd;
 };
