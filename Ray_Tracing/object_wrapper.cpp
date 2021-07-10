@@ -57,3 +57,11 @@ void object_wrapper::Clone(size_t i)
 {
 	add(objects[i]->Clone());
 }
+
+void object_wrapper::OnStart()
+{
+	for (int i = 0; i < objects.size(); i++)
+	{
+		objects[i]->OnStart();
+	}
+}

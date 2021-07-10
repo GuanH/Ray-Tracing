@@ -124,7 +124,7 @@ rt::float3 Mesh::Sampler(rt::float2 uv, int type)
         }
         case NORMALSAMPLER:
         {
-            return{ a,b,-c };
+            return{ c,a,b };
         }
     }
     return{ 0,0,0 };

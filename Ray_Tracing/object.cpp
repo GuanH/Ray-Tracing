@@ -27,6 +27,7 @@ void object::randomize()
 
 inline float object::ambient(float s)
 {
+	return exp(2*(s-1));
 	return s * ambient_const + ambient_b / 2.0f;
 }
 /*------------object class------------*/
@@ -118,13 +119,13 @@ rt::float4 sphere::Hit(Ray ray, float n)
 	}
 	rt::float3 ambient_light = material.color* ambient(normal.dot(scene->light_dir));
 
+
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this) { continue; }
 		Ray ray{ hit_pos,scene->light_dir };
-		if ((scene->objs[i]->Type != _Type::_light) && (scene->objs[i]->IsHit(ray) > 0.00001))
+		if (((scene->objs[i]->Type != _Type::_light) && (scene->objs[i]->IsHit(ray) > 0.00001)))
 		{
-
 			if (scene->objs[i]->material.transparent)
 			{
 				ambient_light = ambient_light * scene->objs[i]->material.color * 0.5;
@@ -137,6 +138,8 @@ rt::float4 sphere::Hit(Ray ray, float n)
 			break;
 		}
 	}
+	
+	
 	
 	Color = sky * (1 - material.ambient);
 
@@ -188,10 +191,10 @@ rt::float4 light::Hit(Ray ray, float n)
 		return { t , {0,0,0} };
 	}
 
-	rt::float3 ambient = { 0.05,0.05,0.05 };
-	constexpr float attConst = 1;
-	constexpr float attLin = 0.045;
-	constexpr float attQuad = 0.0075;
+	rt::float3 ambient = { 0.05f,0.05f,0.05f };
+	constexpr float attConst = 1.0f;
+	constexpr float attLin = 0.045f;
+	constexpr float attQuad = 0.0075f;
 	const float att = 1 / (attConst + attLin * t + attQuad * t * t);
 	rt::float3 diffuse = material.color * (luminance * att);
 	return { t,diffuse.saturate() };
@@ -300,6 +303,10 @@ void plane::randomize()
 mesh::mesh(Mesh* M, rt::float3 Position, Scene* scene) :m(M), object(Position, *M->material, scene) {
 	M->owner.push_back(this);
 	Type = _Type::_mesh; vertices = m->vertices;
+	size_t numFaces = m->indices.size() / 3;
+	Tm.resize(numFaces, {-8,-1,-1});
+	Bm.resize(numFaces);
+	Nm.resize(numFaces);
 };
 
 float mesh::IsHit(Ray ray)
@@ -364,13 +371,29 @@ rt::float3 mesh::GetTexture(Ray ray, int hit_index, int type)
 	if (u < 0)u = 0;
 	if (v < 0)v = 0;
 	if (u + v > 1) { v = 1.0f - u; }
-	rt::float2 a_ = m->vertices_texture[m->indices_texture[hit_index]];
-	rt::float2 b_ = m->vertices_texture[m->indices_texture[hit_index + 1]];
-	rt::float2 c_ = m->vertices_texture[m->indices_texture[hit_index + 2]];
-	rt::float2 A_ = b_ - a_;
-	rt::float2 B_ = c_ - a_;
-	rt::float2 uv = a_ + A_ * u + B_ * v;
-	return m->Sampler(uv, type);
+	rt::float2 at = m->vertices_texture[m->indices_texture[hit_index]];
+	rt::float2 bt = m->vertices_texture[m->indices_texture[hit_index + 1]];
+	rt::float2 ct = m->vertices_texture[m->indices_texture[hit_index + 2]];
+	rt::float2 A_ = bt - at;
+	rt::float2 B_ = ct - at;
+	rt::float2 uv = at + A_ * u + B_ * v;
+	rt::float3 tex = m->Sampler(uv, type);
+	if (type == NORMALSAMPLER)
+	{
+		int index = hit_index / 3;
+		if (Tm[index].x == -8)
+		{
+			float factor = 1.0 / (A_.x * B_.y - B_.x * A_.y);
+			Tm[index] = (rt::float3{ B_.y * A.x - A_.y * B.x,B_.y * A.y - A_.y * B.y,B_.y * A.z - A_.y * B.z }*factor).normalize();
+			Bm[index] = (rt::float3{ A_.x * B.x - B_.x * A.x,A_.x * B.y - B_.x * A.y,A_.x * B.z - B_.x * A.z }*factor).normalize();
+			Nm[index] = A.cross(B).normalize();
+		}
+		tex = rt::float3{ tex.x * 2 - 1, tex.y * 2 - 1 ,tex.z * 2 - 1 }.normalize();
+		tex = { Tm[index].x * tex.x + Nm[index].x * tex.y + Bm[index].x * tex.z,
+				Tm[index].y * tex.x + Nm[index].y * tex.y + Bm[index].y * tex.z,
+				Tm[index].z * tex.x + Nm[index].z * tex.y + Bm[index].z * tex.z };
+	}
+	return tex;
 }
 
 inline Mesh_Hit_Type mesh::_IsHit(Ray ray)
@@ -429,6 +452,7 @@ rt::float4 mesh::Hit(Ray ray, float n)
 	rt::float3 this_color = material.has_texture_map ? GetTexture(ray, hit_index, TEXTURESAMPLER) : material.color;
 	rt::float3 ambient_light = this_color * ambient(normal.dot(scene->light_dir));
 	rt::float3 sky = scene->GetSkyColor(ray);
+
 	for (int i = 0; i < scene->objs.size(); i++)
 	{
 		if (scene->objs[i] == this)
@@ -610,9 +634,9 @@ void mesh::Rotatation(float r, float p, float y)
 	float d = sin(_roll);
 	float e = sin(_yaw);
 	float f = cos(_roll);
-	rt::float3 m_1 = { a * b, a * c * d - e * f, a * c * f + e * d };
-	rt::float3 m_2 = { e * b, e * c * d + a * f, e * c * f - a * d };
-	rt::float3 m_3 = { -c, b * d, b * f };
+	m_1 = { a * b, a * c * d - e * f, a * c * f + e * d };
+	m_2 = { e * b, e * c * d + a * f, e * c * f - a * d };
+	m_3 = { -c, b * d, b * f };
 	for (int i = 0; i < m->vertices.size(); i++)
 	{
 		rt::float3 p = m->vertices[i];
@@ -620,6 +644,14 @@ void mesh::Rotatation(float r, float p, float y)
 		float y = p.dot(m_2);
 		float z = p.dot(m_3);
 		vertices[i] = { x,y,z };
+	}
+}
+
+void mesh::OnStart()
+{
+	for (int i = 0; i < Tm.size(); i++)
+	{
+		Tm[i].x = -8;
 	}
 }
 

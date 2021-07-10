@@ -6,7 +6,7 @@
 
 class object;
 class mesh;
-class Material;
+struct Material;
 class Mesh
 {
 public:

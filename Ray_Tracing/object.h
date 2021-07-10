@@ -42,6 +42,7 @@ public:
 	virtual object* Clone() const = 0;
 	virtual void Rotatation(float r, float p, float y) {};
 	virtual rt::float3 GetRotation() { return{ 0,0,0 }; };
+	virtual void OnStart() {};
 	bool selected = false;
 protected:
 
@@ -137,6 +138,7 @@ public:
 	float IsHit(Ray ray);
 	void Rotatation(float r, float p, float y);
 	rt::float3 GetRotation() { return{ roll,pitch,yaw }; };
+	void OnStart();
 	object* Clone() const
 	{
 		return new mesh(m, { 0,0,7 }, scene);
@@ -168,5 +170,11 @@ private:
 	float roll = 0;
 	float pitch = 0;
 	float yaw = 0;
+	rt::float3 m_1;
+	rt::float3 m_2;
+	rt::float3 m_3;
+	std::vector<rt::float3> Tm;
+	std::vector<rt::float3> Bm;
+	std::vector<rt::float3> Nm;
 	std::vector<rt::float3> vertices;
 };

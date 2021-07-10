@@ -183,5 +183,5 @@ rt::float3 Scene::GetSkyColor(Ray& ray)
 		float c = static_cast<float>(color.r) / 255.0f;
 		return{ c,b,a };
 	}
-	return { 0.4,0.4,0.7 };
+	return { 0.4f,0.4f,0.7f };
 }

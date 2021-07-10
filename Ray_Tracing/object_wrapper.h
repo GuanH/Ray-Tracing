@@ -11,6 +11,7 @@ public:
 	size_t UpdateTransparent(size_t i, bool trans);
 	void Delete(size_t i);
 	void Clone(size_t i);
+	void OnStart();
 	const size_t size() const { return objects.size(); }
 private:
 	std::vector<object*> objects;

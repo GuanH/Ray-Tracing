@@ -119,12 +119,12 @@ namespace rt
 		BYTE r;
 	};
 
-	inline float Determinant(float3 a, float3 b, float3 c)
+	inline float Determinant(const float3& a, const float3& b, const float3& c)
 	{
 		return a.x * b.y * c.z + b.x * c.y * a.z + c.x * a.y * b.z - c.x * b.y * a.z - c.y * b.z * a.x - c.z * b.x * a.y;
 	}
 
-	inline float3 SolveLinear(float3 a, float3 b, float3 c, float3 d)//[ a | b | c ] X = d
+	inline float3 SolveLinear(const float3& a, const float3& b, const float3& c, const float3& d)//[ a | b | c ] X = d
 	{
 		float D = Determinant(a, b, c);
 		if (D == 0)return{ 0,0,0 };

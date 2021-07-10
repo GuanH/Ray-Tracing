@@ -408,6 +408,8 @@ void Graphic::ProcessPixels()
 	size_t chunck_size = resolutiony / threads.size();
 	size_t chunck_end = 0;
 	
+	sc->objs.OnStart();
+
 	for (int i = 0; i < threads.size() - 1; i++)
 	{
 		chunck_end = chunck_size * i + chunck_size;
