@@ -2,7 +2,7 @@
 This program performs raytracing on CPU.\
 Objects : sphere, sphere light, infinite horizontal plane, any triangulated meshes\
 Camera : movable position, changeable direction, changeable resolution, changeable windows size\
-Other : able to use multithread to speed up calculation, able to import OBJ files.
+Other : able to use multithread to speed up calculation, able to import OBJ files with bmp texture.
 
 # Screenshot
 
@@ -22,3 +22,13 @@ Change the attribute of the selected object.
 # Change POV
 
 ![camera](https://user-images.githubusercontent.com/60228748/123826421-55711a80-d932-11eb-9b02-1f82b945eac7.png)
+
+# Texture
+
+It can deal with texture mapping and normal mapping and export result image.
+
+![img](https://user-images.githubusercontent.com/60228748/124345225-41ffd100-dc0a-11eb-9958-8051fd89a212.jpg)
+
+exported result:
+
+![result](https://user-images.githubusercontent.com/60228748/124345233-4e842980-dc0a-11eb-9703-bdf60052b6e8.jpg)
